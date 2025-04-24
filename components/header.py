@@ -7,10 +7,8 @@ from utils.ui_helpers import render_css
 
 def render_header():
     """Render the application header with logo and title"""
-    # Apply custom CSS
     render_css()
 
-    # Display ARCOS logo and title
     col1, col2 = st.columns([1, 5])
     with col1:
         try:
