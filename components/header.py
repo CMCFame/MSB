@@ -3,7 +3,7 @@
 # ============================================================================
 import streamlit as st
 from config.constants import ARCOS_LOGO_URL
-# from utils.ui_helpers import render_css
+from utils.ui_helpers import render_css
 
 def render_header():
     """Render the application header with logo and title"""
