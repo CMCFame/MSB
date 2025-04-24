@@ -7,7 +7,7 @@ from config.constants import CUSTOM_CSS
 def render_css():
     """Render the custom CSS for the application"""
     st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
-        st.markdown("""
+    st.markdown("""
         <style>
         button[kind="secondary"] {
             padding-top: 8px !important;
@@ -17,6 +17,7 @@ def render_css():
         }
         </style>
     """, unsafe_allow_html=True)
+
 
 def render_color_key():
     """Render the color key header similar to the Excel file"""
