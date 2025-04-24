@@ -7,6 +7,16 @@ from config.constants import CUSTOM_CSS
 def render_css():
     """Render the custom CSS for the application"""
     st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+        st.markdown("""
+        <style>
+        button[kind="secondary"] {
+            padding-top: 8px !important;
+            padding-bottom: 8px !important;
+            font-size: 12px !important;
+            min-height: 32px !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
 
 def render_color_key():
     """Render the color key header similar to the Excel file"""
@@ -81,25 +91,12 @@ def show_warning_message(message):
     st.markdown(f"<div style='background-color: {ARCOS_LIGHT_RED}; padding: 10px; border-radius: 5px;'>{message}</div>", unsafe_allow_html=True)
     
 def render_icon_tabs(tabs, tab_icons):
-    """Render compact icon-based tabs and manage selection via session state"""
+    """Render compact Streamlit-native icon tabs"""
     current_tab = st.session_state.get("current_tab", tabs[0])
+    cols = st.columns(len(tabs))
 
-    tab_html = '<div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 16px;">'
-    for tab in tabs:
-        is_active = "background-color:#e3051b;color:white;" if tab == current_tab else "background-color:#f8f9fa;color:#333;"
-        tab_html += f"""
-        <form action="" method="post">
-            <button name="selected_tab" value="{tab}" style="border:none;padding:10px 12px;cursor:pointer;border-radius:6px;font-size:13px;{is_active}">
-                <div style="font-size:20px;">{tab_icons.get(tab, '')}</div>
-                <div>{tab}</div>
-            </button>
-        </form>
-        """
-    tab_html += '</div>'
-    st.markdown(tab_html, unsafe_allow_html=True)
-
-    selected_tab = st.experimental_get_query_params().get("selected_tab", [None])[0]
-    if selected_tab and selected_tab in tabs:
-        st.session_state.current_tab = selected_tab
-        st.experimental_set_query_params()
-        st.rerun()
+    for i, tab in enumerate(tabs):
+        label = f"{tab_icons.get(tab, '')} {tab}"
+        if cols[i].button(label, use_container_width=True):
+            st.session_state.current_tab = tab
+            st.rerun()

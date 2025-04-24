@@ -7,7 +7,7 @@ from utils.exports import get_csv_data, get_excel_data
 from components.sidebar import render_sidebar
 from components.header import render_header
 from components.footer import render_footer
-from utils.ui_helpers import render_icon_tabs
+from utils.ui_helpers import render_icon_tabs, render_css
 from tabs.location_hierarchy import render_location_hierarchy_form
 from tabs.trouble_locations import render_trouble_locations_form
 from tabs.job_classifications import render_job_classifications
@@ -26,6 +26,7 @@ st.set_page_config(
 
 def main():
     initialize_session_state()
+    render_css()
 
     if 'session_unique_id' not in st.session_state:
         st.session_state.session_unique_id = str(uuid.uuid4())
