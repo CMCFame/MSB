@@ -2,8 +2,6 @@
 # ARCOS SIG FORM - MAIN APPLICATION
 # ============================================================================
 import streamlit as st
-import os
-import base64
 from config.constants import ARCOS_RED, PAGE_TITLE, PAGE_LAYOUT, SIDEBAR_STATE
 from utils.session import initialize_session_state
 from utils.exports import get_csv_data, get_excel_data
@@ -30,30 +28,6 @@ st.set_page_config(
 )
 
 # ============================================================================
-# ICON UTILITIES
-# ============================================================================
-def get_icon_path(icon_name):
-    """Get the path to an icon file"""
-    return os.path.join("static", "icons", icon_name)
-
-def get_icon_html(icon_name, active=False):
-    """Get the HTML for an icon, with optional active state"""
-    if not os.path.exists(get_icon_path(icon_name)):
-        # If the icon doesn't exist, return a placeholder
-        return f'<span style="font-size: 24px;">📄</span>'
-    
-    # Read the image file
-    with open(get_icon_path(icon_name), "rb") as f:
-        icon_data = f.read()
-    
-    # Base64 encode the image data
-    encoded_icon = base64.b64encode(icon_data).decode()
-    
-    # Create the HTML img tag with the base64 encoded image
-    filter_style = "filter: brightness(10);" if active else "filter: brightness(0.4);"
-    return f'<img src="data:image/png;base64,{encoded_icon}" style="width: 28px; height: 28px; {filter_style}">'
-
-# ============================================================================
 # MAIN APPLICATION FUNCTION 
 # ============================================================================
 def main():
@@ -78,162 +52,81 @@ def main():
         # Display ARCOS logo and title
         render_header()
         
-        # Define available tabs with icons
-        tabs_with_icons = [
-            {
-                "name": "Location Hierarchy", 
-                "icon": "map-location.png",
-                "description": "Configure your 4-level location structure"
-            },
-            {
-                "name": "Trouble Locations", 
-                "icon": "map.png",
-                "description": "Set up trouble locations and pronunciations"
-            },
-            {
-                "name": "Job Classifications", 
-                "icon": "document-add.png",
-                "description": "Define job roles and IDs"
-            },
-            {
-                "name": "Callout Reasons", 
-                "icon": "alert.png",
-                "description": "Configure callout reasons and verbiage"
-            },
-            {
-                "name": "Event Types", 
-                "icon": "calendar.png",
-                "description": "Set up event types and exceptions"
-            },
-            {
-                "name": "Callout Type Configuration", 
-                "icon": "settings.png",
-                "description": "Configure callout types and behaviors"
-            },
-            {
-                "name": "Global Configuration Options", 
-                "icon": "globe-settings.png",
-                "description": "Global settings and options"
-            },
-            {
-                "name": "Data and Interfaces", 
-                "icon": "hierarchy.png",
-                "description": "Configure data flows and integrations"
-            },
-            {
-                "name": "Additions", 
-                "icon": "plus.png",
-                "description": "Additional configuration options"
-            }
+        # Define available tabs with their descriptions
+        tabs = [
+            {"name": "Location Hierarchy", "desc": "Configure your 4-level location structure"},
+            {"name": "Trouble Locations", "desc": "Set up trouble locations and pronunciations"},
+            {"name": "Job Classifications", "desc": "Define job roles and IDs"},
+            {"name": "Callout Reasons", "desc": "Configure callout reasons and verbiage"},
+            {"name": "Event Types", "desc": "Set up event types and exceptions"},
+            {"name": "Callout Type Configuration", "desc": "Configure callout types and behaviors"},
+            {"name": "Global Configuration Options", "desc": "Global settings and options"},
+            {"name": "Data and Interfaces", "desc": "Configure data flows and integrations"},
+            {"name": "Additions", "desc": "Additional configuration options"}
         ]
         
-        # Get tab names for simpler access
-        tab_names = [tab["name"] for tab in tabs_with_icons]
-        
         # Calculate progress
-        completed_tabs = sum(1 for tab in tab_names if any(key.startswith(tab.replace(" ", "_").lower()) for key in st.session_state.responses))
-        progress = completed_tabs / len(tab_names)
+        completed_tabs = sum(1 for tab in tabs if any(key.startswith(tab["name"].replace(" ", "_").lower()) for key in st.session_state.responses))
+        progress = completed_tabs / len(tabs)
         st.progress(progress)
         st.write(f"{int(progress * 100)}% complete")
         
-        # Navigation section header
-        st.write("Select section:")
-        
-        # Custom CSS for icon navigation
+        # Custom CSS for smaller, more compact buttons
         st.markdown("""
         <style>
-        /* Icon grid layout */
-        .icon-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
+        /* Make tab buttons smaller and more compact */
+        div[data-testid="column"] button[kind] {
+            font-size: 12px !important;
+            padding: 5px 8px !important;
+            height: auto !important;
+            min-height: 0 !important;
+            white-space: normal !important;
+            line-height: 1.2 !important;
         }
         
-        /* Individual icon box */
-        .icon-box {
+        /* Add icons using emoji for simplicity */
+        .tab-label {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 10px 5px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            height: 80px;
-            background-color: #f8f8f8;
-            margin-bottom: 5px;
-        }
-        
-        /* Active icon box */
-        .icon-box.active {
-            background-color: #e3051b;
-            color: white;
-            border-color: #e3051b;
-        }
-        
-        /* Icon box on hover */
-        .icon-box:hover:not(.active) {
-            background-color: #f0f0f0;
-            border-color: #ccc;
-        }
-        
-        /* Icon image container */
-        .icon-img {
-            margin-bottom: 5px;
-        }
-        
-        /* Icon text label */
-        .icon-label {
             font-size: 10px;
-            text-align: center;
             line-height: 1.2;
-            max-width: 100%;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
         
-        /* Hide buttons when using icon navigation */
-        div[data-testid="stHorizontalBlock"] div[data-testid="column"] button[kind] {
-            display: none;
+        .tab-icon {
+            font-size: 18px;
+            margin-bottom: 2px;
         }
         </style>
         """, unsafe_allow_html=True)
         
-        # Create icon grid HTML
-        selected_tab = st.session_state.current_tab
+        # Navigation section header
+        st.write("Select section:")
         
-        icon_grid_html = '<div class="icon-grid">'
+        # Use Streamlit's built-in columns for a 3x3 grid
+        col1, col2, col3 = st.columns(3)
         
-        for i, tab in enumerate(tabs_with_icons):
-            is_active = tab["name"] == selected_tab
-            active_class = "active" if is_active else ""
+        # Define icons using emoji (more reliable than external images)
+        icons = ["🗺️", "📍", "📄", "🔔", "📅", "🔧", "🌐", "🔄", "➕"]
+        
+        # Create tabs as a 3x3 grid of small buttons with icons
+        for i, tab in enumerate(tabs):
+            # Determine which column to place the button in
+            col = [col1, col2, col3][i % 3]
             
-            # Get the icon HTML
-            icon_html = get_icon_html(tab["icon"], is_active)
-            
-            # Create the icon box
-            icon_grid_html += f"""
-            <div class="icon-box {active_class}" title="{tab['description']}" onclick="document.getElementById('btn_tab_{i}').click()">
-                <div class="icon-img">{icon_html}</div>
-                <div class="icon-label">{tab['name']}</div>
-            </div>
-            """
-        
-        icon_grid_html += '</div>'
-        
-        # Display the icon grid
-        st.markdown(icon_grid_html, unsafe_allow_html=True)
-        
-        # Create hidden buttons for each tab
-        # These will be clicked by the JavaScript in the icon grid
-        button_cols = st.columns(3)
-        for i, tab in enumerate(tabs_with_icons):
-            with button_cols[i % 3]:
-                button_type = "primary" if tab["name"] == selected_tab else "secondary"
-                if st.button(tab["name"], key=f"btn_tab_{i}", use_container_width=True, type=button_type):
+            # Create a button with emoji icon and text
+            with col:
+                # Create a label with icon and text
+                button_label = f"""
+                <div class="tab-label">
+                    <div class="tab-icon">{icons[i]}</div>
+                    {tab["name"]}
+                </div>
+                """
+                
+                # Create the button
+                button_type = "primary" if tab["name"] == st.session_state.current_tab else "secondary"
+                if st.button(tab["name"], key=f"tab_{i}", help=tab["desc"], type=button_type, use_container_width=True):
                     st.session_state.current_tab = tab["name"]
                     st.rerun()
         
@@ -244,6 +137,7 @@ def main():
         content_container = st.container()
         with content_container:
             try:
+                selected_tab = st.session_state.current_tab
                 if selected_tab == "Location Hierarchy":
                     render_location_hierarchy_form()
                 elif selected_tab == "Trouble Locations":
