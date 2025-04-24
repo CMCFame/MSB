@@ -52,50 +52,66 @@ def main():
         # Display ARCOS logo and title
         render_header()
         
-        # Define available tabs with their descriptions
+        # Define available tabs
         tabs = [
-            {"name": "Location Hierarchy", "desc": "Configure your 4-level location structure"},
-            {"name": "Trouble Locations", "desc": "Set up trouble locations and pronunciations"},
-            {"name": "Job Classifications", "desc": "Define job roles and IDs"},
-            {"name": "Callout Reasons", "desc": "Configure callout reasons and verbiage"},
-            {"name": "Event Types", "desc": "Set up event types and exceptions"},
-            {"name": "Callout Type Configuration", "desc": "Configure callout types and behaviors"},
-            {"name": "Global Configuration Options", "desc": "Global settings and options"},
-            {"name": "Data and Interfaces", "desc": "Configure data flows and integrations"},
-            {"name": "Additions", "desc": "Additional configuration options"}
+            "Location Hierarchy",
+            "Trouble Locations",
+            "Job Classifications",
+            "Callout Reasons",
+            "Event Types",
+            "Callout Type Configuration",
+            "Global Configuration Options",
+            "Data and Interfaces",
+            "Additions"
         ]
         
         # Calculate progress
-        completed_tabs = sum(1 for tab in tabs if any(key.startswith(tab["name"].replace(" ", "_").lower()) for key in st.session_state.responses))
+        completed_tabs = sum(1 for tab in tabs if any(key.startswith(tab.replace(" ", "_").lower()) for key in st.session_state.responses))
         progress = completed_tabs / len(tabs)
         st.progress(progress)
         st.write(f"{int(progress * 100)}% complete")
         
-        # Custom CSS for smaller, more compact buttons
+        # Custom CSS for more compact buttons
         st.markdown("""
         <style>
-        /* Make tab buttons smaller and more compact */
-        div[data-testid="column"] button[kind] {
-            font-size: 12px !important;
-            padding: 5px 8px !important;
+        /* Make buttons smaller and more visually appealing */
+        div[data-testid="stHorizontalBlock"] div[data-testid="column"] button[kind="secondary"] {
+            background-color: #f8f9fa !important;
+            color: #333 !important;
+            border: 1px solid #ddd !important;
+            border-radius: 8px !important;
+            font-size: 13px !important;
+            padding: 10px 4px !important;
+            min-height: 40px !important;
             height: auto !important;
-            min-height: 0 !important;
-            white-space: normal !important;
-            line-height: 1.2 !important;
-        }
-        
-        /* Add icons using emoji for simplicity */
-        .tab-label {
+            transition: all 0.2s ease;
+            line-height: 1.2;
             display: flex;
             flex-direction: column;
             align-items: center;
-            font-size: 10px;
-            line-height: 1.2;
+            justify-content: center;
+            text-align: center;
         }
         
-        .tab-icon {
-            font-size: 18px;
-            margin-bottom: 2px;
+        div[data-testid="stHorizontalBlock"] div[data-testid="column"] button[kind="secondary"]:hover {
+            background-color: #e9ecef !important;
+            border-color: #ced4da !important;
+        }
+        
+        div[data-testid="stHorizontalBlock"] div[data-testid="column"] button[kind="primary"] {
+            background-color: #e3051b !important;
+            color: white !important;
+            border: 1px solid #e3051b !important;
+            border-radius: 8px !important;
+            font-size: 13px !important;
+            padding: 10px 4px !important;
+            min-height: 40px !important;
+            height: auto !important;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
         }
         </style>
         """, unsafe_allow_html=True)
@@ -103,33 +119,70 @@ def main():
         # Navigation section header
         st.write("Select section:")
         
-        # Use Streamlit's built-in columns for a 3x3 grid
+        # The current tab
+        selected_tab = st.session_state.current_tab
+        
+        # Create 3 rows of 3 buttons each for the navigation
+        # Row 1
         col1, col2, col3 = st.columns(3)
+        with col1:
+            button_type = "primary" if tabs[0] == selected_tab else "secondary"
+            if st.button(tabs[0], key=f"tab_0_{unique_id}", use_container_width=True, type=button_type):
+                st.session_state.current_tab = tabs[0]
+                st.rerun()
         
-        # Define icons using emoji (more reliable than external images)
-        icons = ["🗺️", "📍", "📄", "🔔", "📅", "🔧", "🌐", "🔄", "➕"]
-        
-        # Create tabs as a 3x3 grid of small buttons with icons
-        for i, tab in enumerate(tabs):
-            # Determine which column to place the button in
-            col = [col1, col2, col3][i % 3]
-            
-            # Create a button with emoji icon and text
-            with col:
-                # Create a label with icon and text
-                button_label = f"""
-                <div class="tab-label">
-                    <div class="tab-icon">{icons[i]}</div>
-                    {tab["name"]}
-                </div>
-                """
+        with col2:
+            button_type = "primary" if tabs[1] == selected_tab else "secondary"
+            if st.button(tabs[1], key=f"tab_1_{unique_id}", use_container_width=True, type=button_type):
+                st.session_state.current_tab = tabs[1]
+                st.rerun()
                 
-                # Create the button
-                button_type = "primary" if tab["name"] == st.session_state.current_tab else "secondary"
-                if st.button(tab["name"], key=f"tab_{i}", help=tab["desc"], type=button_type, use_container_width=True):
-                    st.session_state.current_tab = tab["name"]
-                    st.rerun()
+        with col3:
+            button_type = "primary" if tabs[2] == selected_tab else "secondary"
+            if st.button(tabs[2], key=f"tab_2_{unique_id}", use_container_width=True, type=button_type):
+                st.session_state.current_tab = tabs[2]
+                st.rerun()
         
+        # Row 2
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            button_type = "primary" if tabs[3] == selected_tab else "secondary"
+            if st.button(tabs[3], key=f"tab_3_{unique_id}", use_container_width=True, type=button_type):
+                st.session_state.current_tab = tabs[3]
+                st.rerun()
+                
+        with col2:
+            button_type = "primary" if tabs[4] == selected_tab else "secondary"
+            if st.button(tabs[4], key=f"tab_4_{unique_id}", use_container_width=True, type=button_type):
+                st.session_state.current_tab = tabs[4]
+                st.rerun()
+                
+        with col3:
+            button_type = "primary" if tabs[5] == selected_tab else "secondary"
+            if st.button(tabs[5], key=f"tab_5_{unique_id}", use_container_width=True, type=button_type):
+                st.session_state.current_tab = tabs[5]
+                st.rerun()
+        
+        # Row 3
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            button_type = "primary" if tabs[6] == selected_tab else "secondary"
+            if st.button(tabs[6], key=f"tab_6_{unique_id}", use_container_width=True, type=button_type):
+                st.session_state.current_tab = tabs[6]
+                st.rerun()
+                
+        with col2:
+            button_type = "primary" if tabs[7] == selected_tab else "secondary"
+            if st.button(tabs[7], key=f"tab_7_{unique_id}", use_container_width=True, type=button_type):
+                st.session_state.current_tab = tabs[7]
+                st.rerun()
+                
+        with col3:
+            button_type = "primary" if tabs[8] == selected_tab else "secondary"
+            if st.button(tabs[8], key=f"tab_8_{unique_id}", use_container_width=True, type=button_type):
+                st.session_state.current_tab = tabs[8]
+                st.rerun()
+                
         # Add a separator between navigation and content
         st.markdown("<hr style='margin: 12px 0;'>", unsafe_allow_html=True)
         
@@ -137,7 +190,6 @@ def main():
         content_container = st.container()
         with content_container:
             try:
-                selected_tab = st.session_state.current_tab
                 if selected_tab == "Location Hierarchy":
                     render_location_hierarchy_form()
                 elif selected_tab == "Trouble Locations":
