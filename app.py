@@ -15,7 +15,7 @@ from tabs.callout_reasons import render_callout_reasons_form
 from tabs.event_types import render_event_types_form
 from tabs.matrix_locations import render_matrix_locations_callout_types
 from tabs.global_config import render_global_config
-from tabs.data_interfaces import render_data_interfaces
+from tabs.additions import render_additions
 from datetime import datetime
 import uuid
 
@@ -82,8 +82,8 @@ def main():
                 render_matrix_locations_callout_types()
             elif current_tab == "Global Configuration":
                 render_global_config()
-            elif current_tab == "Data and Interfaces":
-                render_data_interfaces()
+            elif current_tab == "Additions":
+                render_additions()
         except Exception as e:
             st.error(f"Error rendering tab: {str(e)}")
             import traceback
