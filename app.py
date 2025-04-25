@@ -14,6 +14,7 @@ from tabs.job_classifications import render_job_classifications
 from tabs.callout_reasons import render_callout_reasons_form
 from tabs.event_types import render_event_types_form
 from tabs.matrix_locations import render_matrix_locations_callout_types
+from tabs.global_config import render_global_config
 from tabs.generic_tab import render_generic_tab
 from datetime import datetime
 import uuid
@@ -43,15 +44,18 @@ def main():
         tabs = [
             "Location Hierarchy", "Trouble Locations", "Job Classifications",
             "Callout Reasons", "Event Types", "Callout Type Configuration",
-            "Global Configuration Options", "Data and Interfaces", "Additions"
+            "Global Configuration", "Data and Interfaces", "Additions"
         ]
 
         tab_icons = {
-            "Location Hierarchy": "🏢", "Trouble Locations": "📍", "Job Classifications": "👷",
-            "Callout Reasons": "📞", "Event Types": "📆", "Callout Type Configuration": "⚙️",
-            "Global Configuration Options": "🌐", "Data and Interfaces": "🔗", "Additions": "➕"
+            "Location Hierarchy": "🏢", "Trouble Locations": "📍", 
+            "Job Classifications": "👷", "Callout Reasons": "📞", 
+            "Event Types": "📆", "Callout Type Configuration": "⚙️",
+            "Global Configuration": "🌐", 
+            "Data and Interfaces": "🔗", "Additions": "➕"
         }
 
+        # Calculate completion progress
         completed_tabs = sum(1 for tab in tabs if any(k.startswith(tab.replace(" ", "_").lower()) for k in st.session_state.get("responses", {})))
         progress = completed_tabs / len(tabs)
         st.progress(progress)
@@ -63,6 +67,7 @@ def main():
 
         try:
             current_tab = st.session_state.get("current_tab", tabs[0])
+            
             if current_tab == "Location Hierarchy":
                 render_location_hierarchy_form()
             elif current_tab == "Trouble Locations":
@@ -75,6 +80,8 @@ def main():
                 render_event_types_form()
             elif current_tab == "Callout Type Configuration":
                 render_matrix_locations_callout_types()
+            elif current_tab == "Global Configuration":
+                render_global_config()
             else:
                 render_generic_tab(current_tab)
         except Exception as e:
