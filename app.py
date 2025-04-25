@@ -14,7 +14,7 @@ from tabs.job_classifications import render_job_classifications
 from tabs.callout_reasons import render_callout_reasons_form
 from tabs.event_types import render_event_types_form
 from tabs.matrix_locations import render_matrix_locations_callout_types
-from tabs.global_config import render_global_config
+from tabs.data_interfaces import render_data_interfaces
 from tabs.additions import render_additions
 from datetime import datetime
 import uuid
