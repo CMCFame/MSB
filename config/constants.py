@@ -34,7 +34,7 @@ CUSTOM_CSS = """
     .download-button {background-color: #28a745; color: white; padding: 10px 15px; border-radius: 5px; text-decoration: none; display: inline-block; margin-top: 10px;}
     .download-button:hover {background-color: #218838; color: white; text-decoration: none;}
     
-    /* Style for tab buttons to look like the screenshot */
+ /* Style for tab buttons to look like the screenshot */
     div[data-testid="stButton"] button[kind="secondary"] {
         background-color: #f2f2f2 !important;
         color: black !important;
@@ -44,6 +44,7 @@ CUSTOM_CSS = """
         width: 100% !important;
         height: 40px !important;
         margin-bottom: 5px !important;
+        transition: background-color 0.3s ease !important;
     }
     
     /* Style for active tab button */
@@ -56,6 +57,13 @@ CUSTOM_CSS = """
         width: 100% !important;
         height: 40px !important;
         margin-bottom: 5px !important;
+    }
+    
+    /* Enhanced active tab styling */
+    div[data-testid="stButton"] button.active {
+        background-color: #b30000 !important; /* Darker shade of red for active state */
+        color: white !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
     }
     
     /* Small export buttons */

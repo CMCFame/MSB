@@ -89,6 +89,14 @@ def render_icon_tabs(tabs, tab_icons):
     cols = st.columns(len(tabs))
     for i, tab in enumerate(tabs):
         label = f"{tab_icons.get(tab, '')} {tab}"
-        if cols[i].button(label, use_container_width=True):
+        # Determine button type based on whether this is the current tab
+        button_type = "primary" if tab == current_tab else "secondary"
+        
+        # Add a CSS class for active state
+        extra_css = "active" if tab == current_tab else ""
+        
+        if cols[i].button(label, use_container_width=True, type=button_type, key=f"tab_{tab}", 
+                          help=f"Switch to {tab} tab", 
+                          disabled=tab == current_tab):
             st.session_state.current_tab = tab
             st.rerun()
