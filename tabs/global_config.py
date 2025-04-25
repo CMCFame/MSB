@@ -79,9 +79,27 @@ def render_tab_content(tab_name):
     """Render content for specific global config tabs"""
     category_map = {
         "Roster Admin": ["Roster Sorting Methods", "ARCOS Add-On Features"],
-        "Calling Config": ["Calling Methods", "Exclusive Rule", "Exclude from All Hands"],
-        "VRU Config": ["Device Limitations", "Device Modification", "Temporary Numbers", "Temporary Number Duration"],
-        # Add more mappings for other tabs
+        "Calling Config": ["Calling Methods", "Exclusive Rule", "Exclude from All Hands", 
+                           "Callback Configuration", "Reaccept Configuration", "Final Result Rules"],
+        "VRU Config": ["Device Limitations", "Device Modification", "Temporary Numbers", 
+                       "Temporary Number Duration", "Temporary Number Replacement", 
+                       "Callout Percentage Reporting", "Duty Phone", "PIN Requirement"],
+        "One-Call Rules": ["One Call per Co Main", "One Call per Co"],
+        "Availability": ["Availability Response Percentage", "Zero Calls Percentage", 
+                         "Availability Percentage Rounding", "On-Call/On-Duty Availability"],
+        "Employee Page": ["Radio Field", "Vehicle Field"],
+        "Work & Rest Rules": ["Automatic Rest Status", "Rest Rule", 
+                               "Working Screen Color Thresholds", "Cumulative Hours Calculation"],
+        "Charge & Credit": ["Call Result Charges", "Maximum Charges and Credits", 
+                             "Response Window", "Grace Period", "Uncalled Devices", 
+                             "Above Employee Acceptance Rule"],
+        "Misc & New Year": ["Holdover Configuration", "Release Methods", 
+                             "Serial Calling Progression", "Bypass Configuration", 
+                             "Callout Auto-Close", "Wait Status Configuration", 
+                             "Shift Week Configuration", "Holiday Assignment", 
+                             "Location Access", "Future Roster Assignments", 
+                             "New Year Start", "Roster Resequencing", 
+                             "Chain Delay", "Date Selector", "Crew Request"]
     }
     
     # Render categories for the specific tab

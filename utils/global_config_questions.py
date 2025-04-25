@@ -108,7 +108,7 @@ GLOBAL_CONFIG_QUESTIONS = {
         {"id": "4_exclude_all_hands", "category": "Exclude from All Hands", 
          "question": "Is the Exclude from All Hands field required?", "type": "text"}
     ],
-    "VRU Configuration": [
+    "VRU Config": [
         {"id": "5_device_limit", "category": "Device Limitations", 
          "question": "How many devices can an employee have active at one time? (Up to three)", "type": "number"},
         {"id": "6_device_modification", "category": "Device Modification", 
@@ -138,7 +138,7 @@ GLOBAL_CONFIG_QUESTIONS = {
         {"id": "15_final_result_rules", "category": "Final Result Rules", 
          "question": "Which of the following 'Final Result' rules do you have? (A: Do not call again for entire callout, B: Can be called again for different position, C: Can be called if callout is resubmitted)", "type": "text"}
     ],
-    "One Call Configuration": [
+    "One-Call Rules Configuration": [
         {"id": "16_one_call_co_main", "category": "One Call per Co Main", 
          "question": "Do you require one call per Co Main? (Employee will not be called on multiple sub-callouts but could be called multiple times WITHIN sub-callouts)", "type": "text"},
         {"id": "17_one_call_co", "category": "One Call per Co", 
