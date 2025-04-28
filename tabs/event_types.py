@@ -1,13 +1,12 @@
 # ============================================================================
-# EVENT TYPES TAB - TABULAR LAYOUT
+# EVENT TYPES TAB
 # ============================================================================
 import streamlit as st
 from datetime import datetime
-import pandas as pd
 from utils.ai_assistant import get_openai_response, save_chat_history
 
 def render_event_types_form():
-    """Render the Event Types form with a tabular layout for better alignment"""
+    """Render the Event Types form with improved alignment and shorter questions"""
     st.markdown('<p class="tab-header">Event Types</p>', unsafe_allow_html=True)
     
     # Display descriptive text
@@ -35,19 +34,23 @@ def render_event_types_form():
                                      label_visibility="collapsed")
     
     # Add New Event Type button
-    add_col = st.container()
-    with add_col:
-        add_button = st.markdown(
+    add_col1, add_col2 = st.columns([6, 1])
+    with add_col1:
+        # Create a visually styled button container
+        st.markdown(
             """
-            <div style="background-color: #f8f9fa; border-radius: 4px; padding: 8px; text-align: center; margin: 10px 0;">
+            <div style="background-color: #f8f9fa; border-radius: 4px; padding: 8px; 
+                 text-align: center; margin: 10px 0; cursor: pointer;"
+                 onclick="document.getElementById('hidden_add_button').click();">
                 <span>➕ Add New Event Type</span>
             </div>
             """,
             unsafe_allow_html=True
         )
-        
-        # Hidden button aligned with design
-        if st.button("Add New Event Type", key="add_new_event_type", label_visibility="collapsed"):
+    
+    # Hidden button - placed in a column but without the label_visibility parameter
+    with add_col2:
+        if st.button("Add", key="hidden_add_button"):
             # Generate new ID (just increment the highest existing ID)
             existing_ids = [int(event["id"]) for event in st.session_state.event_types]
             new_id = str(max(existing_ids) + 1) if existing_ids else "2000"
@@ -83,298 +86,205 @@ def render_event_types_form():
     if show_active_only:
         filtered_events = [event for event in filtered_events if event["use"]]
     
-    # More concise and clear question formulations
-    questions = [
-        # Original question: Event Description
-        "Event Description",
-        
-        # Original question: Use?
-        "Use?",
-        
-        # Original question: Use in Schedule Module Dropdown
-        "Use in Module Dropdown",
-        
-        # Original question: Include in Override ALL?
-        "Include in Override?",
-        
-        # Original question: If an override occurs on this Schedule Exception and the employee is called 
-        # and results in a non-accept, should the employee be Charged or Excused?
-        "Override occurs → Charged/Excused?",
-        
-        # Original question: If an employee is skipped during a callout due to being on this 
-        # Schedule Exception, should he be Charged or Excused?
-        "Skipped in callout → Charged/Excused?",
-        
-        # Original question: Can the employee place themselves on this Exception on Inbound?
-        "Can place on Inbound?",
-        
-        # Original question: Allow users to be released from this schedule record via Mobile?
-        "Released via Mobile?",
-        
-        # Original question: Allow users to automatically enter rest status from this schedule record via Mobile?
-        "Auto rest via Mobile?",
-        
-        # Original question: Allow users to make themselves unavailable using this schedule record via Mobile?
-        "Make unavailable via Mobile?",
-        
-        # Original question: Allow users to place themselves on this status via rest status via Mobile?
-        "Place on rest status via Mobile?",
-        
-        # Original question: What is the minimum duration users can place themselves on this schedule record? (In Hours)
-        "Min duration (Hours)",
-        
-        # Original question: What is the maximum duration users can place themselves on this schedule record? (In Hours)
-        "Max duration (Hours)"
-    ]
-    
-    # CSS for tabular layout
+    # CSS for better table-like styling
     st.markdown("""
     <style>
-    .dataframe {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    .dataframe th {
-        text-align: center;
-        background-color: #f2f2f2;
-        padding: 8px 4px;
-        border: 1px solid #ddd;
-        font-size: 12px;
-        font-weight: bold;
-        vertical-align: middle;
-        height: 50px;
-    }
-    .dataframe td {
-        text-align: center;
-        padding: 4px;
-        border: 1px solid #ddd;
-        background-color: #f9f9f9;
-    }
-    /* Make sure inputs and checkboxes are centered */
-    .dataframe td > div {
+    /* Better header styling */
+    .header-row {
         display: flex;
-        justify-content: center;
+        background-color: #f2f2f2;
+        border-bottom: 1px solid #ddd;
+        padding: 5px 0;
+        margin-bottom: 5px;
     }
-    /* Make delete button look like in screenshot */
-    .delete-btn {
-        background-color: transparent;
-        border: none;
-        color: #6c757d;
-        cursor: pointer;
-        padding: 0;
-        font-size: 16px;
+    .header-cell {
+        font-weight: bold;
+        font-size: 12px;
+        text-align: center;
+        overflow: hidden;
+        padding: 2px;
+    }
+    /* Custom form element styling */
+    .stCheckbox > div {
+        justify-content: center !important;
     }
     </style>
     """, unsafe_allow_html=True)
     
-    # Create a DataFrame to display questions and event data
-    # This approach uses an HTML table for better alignment
-    st.markdown(
-        f"""
-        <table class="dataframe">
-            <thead>
-                <tr>
-                    {"".join([f'<th>{q}</th>' for q in questions])}
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-        """
-        , unsafe_allow_html=True
-    )
+    # Shortened headers with clearer text
+    headers = [
+        "Event Description",
+        "Use?",
+        "Use in Module",
+        "Include in Override?",
+        "If override: Charged/Excused?",
+        "If skipped: Charged/Excused?",
+        "Can use Inbound?",
+        "Mobile Release?",
+        "Mobile Auto Rest?",
+        "Mobile Unavailable?",
+        "Mobile Rest Status?",
+        "Min Hours",
+        "Max Hours"
+    ]
     
-    # Instead of using Streamlit's built-in components, we'll create form elements explicitly for each event
+    # Column widths based on header content
+    col_widths = [2, 0.7, 1.2, 1.5, 2, 2, 1.2, 1, 1, 1, 1, 0.7, 0.7]
+    
+    # Create header row
+    header_cols = st.columns(col_widths)
+    for i, header in enumerate(headers):
+        with header_cols[i]:
+            st.markdown(f"<div style='text-align: center; font-weight: bold; font-size: 11px;'>{header}</div>", unsafe_allow_html=True)
+    
+    # Create rows for each event
     for i, event in enumerate(filtered_events):
-        # Create form elements with proper form IDs
-        description_id = f"event_desc_{i}"
-        use_id = f"event_use_{i}"
-        dropdown_id = f"event_dropdown_{i}"
-        override_id = f"event_override_{i}"
-        charged_override_id = f"event_charged1_{i}"
-        charged_skipped_id = f"event_charged2_{i}"
-        inbound_id = f"event_inbound_{i}"
-        release_id = f"event_release_{i}"
-        auto_rest_id = f"event_auto_{i}"
-        unavailable_id = f"event_unavail_{i}"
-        status_id = f"event_status_{i}"
-        min_id = f"event_min_{i}"
-        max_id = f"event_max_{i}"
-        delete_id = f"event_delete_{i}"
+        # Create a row with the same column proportions
+        event_cols = st.columns(col_widths)
         
-        # In this row, we'll use Streamlit elements, properly aligned in table cells
-        st.markdown(f'<tr id="event_row_{i}">', unsafe_allow_html=True)
+        with event_cols[0]:
+            event["description"] = st.text_input(
+                "Description", 
+                value=event.get("description", ""), 
+                key=f"event_desc_{i}",
+                label_visibility="collapsed"
+            )
         
-        # Event description
-        st.markdown('<td>', unsafe_allow_html=True)
-        event["description"] = st.text_input(
-            "Description", 
-            value=event.get("description", ""), 
-            key=description_id,
-            label_visibility="collapsed"
-        )
-        st.markdown('</td>', unsafe_allow_html=True)
+        with event_cols[1]:
+            event["use"] = st.checkbox(
+                "Use", 
+                value=event.get("use", False), 
+                key=f"event_use_{i}",
+                label_visibility="collapsed"
+            )
         
-        # Use checkbox
-        st.markdown('<td>', unsafe_allow_html=True)
-        event["use"] = st.checkbox(
-            "Use", 
-            value=event.get("use", False), 
-            key=use_id,
-            label_visibility="collapsed"
-        )
-        st.markdown('</td>', unsafe_allow_html=True)
+        with event_cols[2]:
+            event["use_in_dropdown"] = st.checkbox(
+                "Dropdown", 
+                value=event.get("use_in_dropdown", False), 
+                key=f"event_dropdown_{i}",
+                label_visibility="collapsed"
+            )
         
-        # Use in dropdown checkbox
-        st.markdown('<td>', unsafe_allow_html=True)
-        event["use_in_dropdown"] = st.checkbox(
-            "Use in Dropdown", 
-            value=event.get("use_in_dropdown", False), 
-            key=dropdown_id,
-            label_visibility="collapsed"
-        )
-        st.markdown('</td>', unsafe_allow_html=True)
+        with event_cols[3]:
+            event["include_in_override"] = st.checkbox(
+                "Override", 
+                value=event.get("include_in_override", False), 
+                key=f"event_override_{i}",
+                label_visibility="collapsed"
+            )
         
-        # Include in Override ALL?
-        st.markdown('<td>', unsafe_allow_html=True)
-        event["include_in_override"] = st.checkbox(
-            "Include in Override", 
-            value=event.get("include_in_override", False), 
-            key=override_id,
-            label_visibility="collapsed"
-        )
-        st.markdown('</td>', unsafe_allow_html=True)
+        with event_cols[4]:
+            charged_options = ["", "Charged", "Excused"]
+            current_value = event.get("charged_or_excused", "")
+            current_index = 0
+            if current_value in charged_options:
+                current_index = charged_options.index(current_value)
+                
+            event["charged_or_excused"] = st.selectbox(
+                "If override", 
+                charged_options, 
+                index=current_index,
+                key=f"event_charge1_{i}",
+                label_visibility="collapsed"
+            )
         
-        # If override occurs...
-        st.markdown('<td>', unsafe_allow_html=True)
-        charged_options = ["", "Charged", "Excused"]
-        current_value = event.get("charged_or_excused", "")
-        current_index = 0
-        if current_value in charged_options:
-            current_index = charged_options.index(current_value)
-            
-        event["charged_or_excused"] = st.selectbox(
-            "If override occurs", 
-            charged_options, 
-            index=current_index,
-            key=charged_override_id,
-            label_visibility="collapsed"
-        )
-        st.markdown('</td>', unsafe_allow_html=True)
+        with event_cols[5]:
+            skipped_options = ["", "Charged", "Excused"]
+            current_value = event.get("employee_on_exception", "")
+            current_index = 0
+            if current_value in skipped_options:
+                current_index = skipped_options.index(current_value)
+                
+            event["employee_on_exception"] = st.selectbox(
+                "If skipped", 
+                skipped_options, 
+                index=current_index,
+                key=f"event_charge2_{i}",
+                label_visibility="collapsed"
+            )
         
-        # If employee is skipped...
-        st.markdown('<td>', unsafe_allow_html=True)
-        skipped_options = ["", "Charged", "Excused"]
-        current_value = event.get("employee_on_exception", "")
-        current_index = 0
-        if current_value in skipped_options:
-            current_index = skipped_options.index(current_value)
-            
-        event["employee_on_exception"] = st.selectbox(
-            "If employee is skipped", 
-            skipped_options, 
-            index=current_index,
-            key=charged_skipped_id,
-            label_visibility="collapsed"
-        )
-        st.markdown('</td>', unsafe_allow_html=True)
+        with event_cols[6]:
+            inbound_options = ["", "Yes", "No"]
+            current_value = event.get("available_on_inbound", "")
+            current_index = 0
+            if current_value in inbound_options:
+                current_index = inbound_options.index(current_value)
+                
+            event["available_on_inbound"] = st.selectbox(
+                "Inbound", 
+                inbound_options, 
+                index=current_index,
+                key=f"event_inbound_{i}",
+                label_visibility="collapsed"
+            )
         
-        # Can place on inbound
-        st.markdown('<td>', unsafe_allow_html=True)
-        inbound_options = ["", "Yes", "No"]
-        current_value = event.get("available_on_inbound", "")
-        current_index = 0
-        if current_value in inbound_options:
-            current_index = inbound_options.index(current_value)
-            
-        event["available_on_inbound"] = st.selectbox(
-            "Can employee place on Inbound", 
-            inbound_options, 
-            index=current_index,
-            key=inbound_id,
-            label_visibility="collapsed"
-        )
-        st.markdown('</td>', unsafe_allow_html=True)
+        with event_cols[7]:
+            event["release_mobile"] = st.checkbox(
+                "Release", 
+                value=event.get("release_mobile", False), 
+                key=f"event_release_{i}",
+                label_visibility="collapsed"
+            )
         
-        # Release via mobile
-        st.markdown('<td>', unsafe_allow_html=True)
-        event["release_mobile"] = st.checkbox(
-            "Release via Mobile", 
-            value=event.get("release_mobile", False), 
-            key=release_id,
-            label_visibility="collapsed"
-        )
-        st.markdown('</td>', unsafe_allow_html=True)
+        with event_cols[8]:
+            event["release_auto"] = st.checkbox(
+                "Auto Rest", 
+                value=event.get("release_auto", False), 
+                key=f"event_auto_{i}",
+                label_visibility="collapsed"
+            )
         
-        # Auto rest status
-        st.markdown('<td>', unsafe_allow_html=True)
-        event["release_auto"] = st.checkbox(
-            "Auto Rest", 
-            value=event.get("release_auto", False), 
-            key=auto_rest_id,
-            label_visibility="collapsed"
-        )
-        st.markdown('</td>', unsafe_allow_html=True)
+        with event_cols[9]:
+            event["make_unavailable"] = st.checkbox(
+                "Unavailable", 
+                value=event.get("make_unavailable", False), 
+                key=f"event_unavail_{i}",
+                label_visibility="collapsed"
+            )
         
-        # Make unavailable
-        st.markdown('<td>', unsafe_allow_html=True)
-        event["make_unavailable"] = st.checkbox(
-            "Make Unavailable", 
-            value=event.get("make_unavailable", False), 
-            key=unavailable_id,
-            label_visibility="collapsed"
-        )
-        st.markdown('</td>', unsafe_allow_html=True)
+        with event_cols[10]:
+            event["place_status"] = st.checkbox(
+                "Status", 
+                value=event.get("place_status", False), 
+                key=f"event_status_{i}",
+                label_visibility="collapsed"
+            )
         
-        # Place on status
-        st.markdown('<td>', unsafe_allow_html=True)
-        event["place_status"] = st.checkbox(
-            "Place on Rest Status", 
-            value=event.get("place_status", False), 
-            key=status_id,
-            label_visibility="collapsed"
-        )
-        st.markdown('</td>', unsafe_allow_html=True)
+        with event_cols[11]:
+            event["min_duration"] = st.text_input(
+                "Min", 
+                value=event.get("min_duration", ""), 
+                key=f"event_min_{i}",
+                label_visibility="collapsed"
+            )
         
-        # Min duration
-        st.markdown('<td>', unsafe_allow_html=True)
-        event["min_duration"] = st.text_input(
-            "Min Duration", 
-            value=event.get("min_duration", ""), 
-            key=min_id,
-            label_visibility="collapsed"
-        )
-        st.markdown('</td>', unsafe_allow_html=True)
+        with event_cols[12]:
+            event["max_duration"] = st.text_input(
+                "Max", 
+                value=event.get("max_duration", ""), 
+                key=f"event_max_{i}",
+                label_visibility="collapsed"
+            )
         
-        # Max duration
-        st.markdown('<td>', unsafe_allow_html=True)
-        event["max_duration"] = st.text_input(
-            "Max Duration", 
-            value=event.get("max_duration", ""), 
-            key=max_id,
-            label_visibility="collapsed"
-        )
-        st.markdown('</td>', unsafe_allow_html=True)
+        # Delete button in a separate row
+        delete_cols = st.columns([12, 1])
+        with delete_cols[1]:
+            if st.button("🗑️", key=f"del_event_{i}"):
+                st.session_state.event_types.pop(i)
+                st.rerun()
         
-        # Delete button
-        st.markdown('<td>', unsafe_allow_html=True)
-        if st.button("🗑️", key=delete_id):
-            st.session_state.event_types.pop(i)
-            st.rerun()
-        st.markdown('</td>', unsafe_allow_html=True)
-        
-        st.markdown('</tr>', unsafe_allow_html=True)
+        # Add separator between rows
+        st.markdown("<hr style='margin: 2px 0; border: none; border-top: 1px solid #ddd;'>", unsafe_allow_html=True)
     
-    # Close the table
-    st.markdown('</tbody></table>', unsafe_allow_html=True)
-    
-    # Export buttons
+    # Export buttons at the bottom
     export_cols = st.columns(2)
     with export_cols[0]:
         st.button("Export as CSV", key="export_csv")
     with export_cols[1]:
         st.button("Export as Excel", key="export_excel")
     
-    # Need help section
+    # Help section at the bottom
     help_cols = st.columns([3, 1])
     with help_cols[1]:
         st.markdown('<p class="section-header">Need Help?</p>', unsafe_allow_html=True)
