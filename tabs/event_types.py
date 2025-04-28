@@ -33,30 +33,44 @@ def render_event_types_form():
         revision_date = st.text_input("", value=current_date, key="revision_date", 
                                      label_visibility="collapsed")
     
-    # Add button for new event type
-    if st.button("➕ Add New Event Type", key="add_new_event_type"):
-        # Generate new ID (just increment the highest existing ID)
-        existing_ids = [int(event["id"]) for event in st.session_state.event_types]
-        new_id = str(max(existing_ids) + 1) if existing_ids else "2000"
+    # Add New Event Type button that matches the look in the screenshot
+    add_col = st.container()
+    with add_col:
+        # Create a grey button that stretches across the container
+        add_button = st.markdown(
+            """
+            <div style="background-color: #f8f9fa; border-radius: 5px; padding: 8px; text-align: center; cursor: pointer;"
+                 onclick="document.getElementById('add_new_event_btn').click();">
+                <span style="color: #6c757d;">➕ Add New Event Type</span>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
         
-        # Add new empty event type
-        st.session_state.event_types.append({
-            "id": new_id,
-            "description": "",
-            "use": False,
-            "use_in_dropdown": False,
-            "include_in_override": False,
-            "charged_or_excused": "",
-            "available_on_inbound": "",
-            "employee_on_exception": "",
-            "release_mobile": False,
-            "release_auto": False,
-            "make_unavailable": False,
-            "place_status": False,
-            "min_duration": "",
-            "max_duration": ""
-        })
-        st.rerun()
+        # Hidden button that will be triggered by the custom styled div
+        if st.button("Add New Event Type", key="add_new_event_btn", label_visibility="collapsed"):
+            # Generate new ID (just increment the highest existing ID)
+            existing_ids = [int(event["id"]) for event in st.session_state.event_types]
+            new_id = str(max(existing_ids) + 1) if existing_ids else "2000"
+            
+            # Add new empty event type
+            st.session_state.event_types.append({
+                "id": new_id,
+                "description": "",
+                "use": False,
+                "use_in_dropdown": False,
+                "include_in_override": False,
+                "charged_or_excused": "",
+                "employee_on_exception": "",
+                "available_on_inbound": "",
+                "release_mobile": False,
+                "release_auto": False,
+                "make_unavailable": False,
+                "place_status": False,
+                "min_duration": "",
+                "max_duration": ""
+            })
+            st.rerun()
     
     # Filter options
     filter_cols = st.columns([3, 1])
@@ -70,144 +84,195 @@ def render_event_types_form():
     if show_active_only:
         filtered_events = [event for event in filtered_events if event["use"]]
     
-    # Create better readable headers - each in its own container to avoid text cutoff
-    # Create a horizontal scroll container for all headers
+    # Custom CSS for compact table and better alignment
     st.markdown("""
     <style>
-    .scrollable-header {
-        overflow-x: auto;
-        white-space: nowrap;
-        display: flex;
-        margin-bottom: 10px;
-        background-color: #f0f0f0; 
-        padding: 8px 0;
-    }
-    .header-cell {
-        display: inline-block;
-        padding: 5px 10px;
-        font-weight: bold;
+    .compact-header {
         text-align: center;
-        min-width: 150px;
-        max-width: 200px;
-        word-wrap: break-word;
-        white-space: normal;
+        font-weight: bold;
+        font-size: 0.8em;
+        padding: 4px;
+        height: 90px;
+        overflow: hidden;
+        background-color: #f5f5f5;
+        border: 1px solid #ddd;
         vertical-align: top;
     }
-    </style>
-    
-    <div class="scrollable-header">
-        <div class="header-cell" style="width: 200px;">Event Description</div>
-        <div class="header-cell" style="width: 60px;">Use?</div>
-        <div class="header-cell" style="width: 130px;">Use in Schedule Module Dropdown</div>
-        <div class="header-cell" style="width: 130px;">Include in Override ALL?</div>
-        <div class="header-cell" style="width: 200px;">If an override occurs on this Schedule Exception and the employee is called and results in a non-accept, should the employee be Charged or Excused?</div>
-        <div class="header-cell" style="width: 200px;">If an employee is skipped during a callout due to being on this Schedule Exception, should he be Charged or Excused?</div>
-        <div class="header-cell" style="width: 180px;">Can the employee place themselves on this Exception on Inbound?</div>
-        <div class="header-cell" style="width: 140px;">Allow users to be released from this schedule record via Mobile?</div>
-        <div class="header-cell" style="width: 140px;">Allow users to automatically enter rest status from this schedule record via Mobile?</div>
-        <div class="header-cell" style="width: 140px;">Allow users to make themselves unavailable using this schedule record via Mobile?</div>
-        <div class="header-cell" style="width: 140px;">Allow users to place themselves on this status via rest status via Mobile?</div>
-        <div class="header-cell" style="width: 140px;">What is the minimum duration users can place themselves on this schedule record? (In Hours)</div>
-        <div class="header-cell" style="width: 140px;">What is the maximum duration users can place themselves on this schedule record? (In Hours)</div>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Create scrollable container for the event data rows
-    st.markdown("""
-    <style>
-    .scrollable-content {
+    .compact-table {
+        width: 100%;
         overflow-x: auto;
+        display: block;
         white-space: nowrap;
     }
-    .data-row {
+    .compact-row {
         display: flex;
-        margin-bottom: 10px;
-        background-color: #fff;
+        margin-bottom: 4px;
         border-bottom: 1px solid #eee;
-        padding: 8px 0;
+    }
+    .compact-cell {
+        padding: 4px;
+        text-align: center;
+        display: inline-block;
+    }
+    .stButton button {
+        padding: 4px !important;
+    }
+    .stCheckbox > div {
+        display: flex;
+        justify-content: center;
+    }
+    
+    /* Reduce input field padding */
+    .st-emotion-cache-1a1dtzj.e1q9nlms0 {
+        padding-top: 0px;
+        padding-bottom: 0px;
+    }
+    
+    /* Make selects and inputs smaller */
+    div[data-baseweb="select"] {
+        min-height: 32px !important;
+    }
+    
+    .stSelectbox [data-testid="stMarkdownContainer"] {
+        display: none;
     }
     </style>
     """, unsafe_allow_html=True)
     
-    # Divider
-    st.markdown("<hr style='margin: 10px 0;'>", unsafe_allow_html=True)
+    # Column headers - shortened to improve readability while showing key concepts
+    column_headers = [
+        "Event Description",
+        "Use?",
+        "Use in Schedule Module Dropdown",
+        "Include in Override ALL?",
+        "If override occurs...",
+        "If employee is skipped...",
+        "Can place on Inbound?",
+        "Released via Mobile?",
+        "Auto rest status?",
+        "Make unavailable?",
+        "Place on rest status?",
+        "Min duration (hours)",
+        "Max duration (hours)"
+    ]
     
-    # For regular form elements, we still need to use Streamlit's built-in components
-    # Create each row for event types in a more structured way
+    # Full questions for tooltips - exact questions from the image
+    full_headers = [
+        "Event Description",
+        "Use?",
+        "Use in Schedule Module Dropdown",
+        "Include in Override ALL?",
+        "If an override occurs on this Schedule Exception and the employee is called and results in a non-accept, should the employee be Charged or Excused?",
+        "If an employee is skipped during a callout due to being on this Schedule Exception, should he be Charged or Excused?",
+        "Can the employee place themselves on this Exception on Inbound?",
+        "Allow users to be released from this schedule record via Mobile?",
+        "Allow users to automatically enter rest status from this schedule record via Mobile?",
+        "Allow users to make themselves unavailable using this schedule record via Mobile?",
+        "Allow users to place themselves on this status via rest status via Mobile?",
+        "What is the minimum duration users can place themselves on this schedule record? (In Hours)",
+        "What is the maximum duration users can place themselves on this schedule record? (In Hours)"
+    ]
+    
+    # Render the headers with tooltips
+    header_cols = st.columns([2, 1, 2, 1.5, 2, 2, 1.5, 1, 1, 1, 1, 1, 1])
+    
+    for i, (short_header, full_header) in enumerate(zip(column_headers, full_headers)):
+        with header_cols[i]:
+            st.markdown(
+                f'<div title="{full_header}" style="font-weight: bold; text-align: center; font-size: 0.8em; white-space: normal; height: 60px; overflow: hidden;">{short_header}</div>',
+                unsafe_allow_html=True
+            )
+    
+    # Create each row for event types with the same column proportions
     for i, event in enumerate(filtered_events):
-        # Event row using columns to maintain structure
-        event_cols = st.columns([2, 1, 1.5, 1.5, 3, 3, 2, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5])
+        # Create a row with the same column structure
+        event_row = st.columns([2, 1, 2, 1.5, 2, 2, 1.5, 1, 1, 1, 1, 1, 1])
         
-        with event_cols[0]:
+        with event_row[0]:
             # Description
             event["description"] = st.text_input(
-                "Event Description", 
-                value=event["description"], 
+                "Description", 
+                value=event.get("description", ""), 
                 key=f"event_desc_{i}",
                 label_visibility="collapsed"
             )
         
-        with event_cols[1]:
+        with event_row[1]:
             # Use checkbox
             event["use"] = st.checkbox(
-                "Use?", 
-                value=event["use"], 
+                "Use", 
+                value=event.get("use", False), 
                 key=f"event_use_{i}",
                 label_visibility="collapsed"
             )
         
-        with event_cols[2]:
+        with event_row[2]:
             # Use in dropdown checkbox
             event["use_in_dropdown"] = st.checkbox(
                 "Use in Dropdown", 
-                value=event["use_in_dropdown"], 
+                value=event.get("use_in_dropdown", False), 
                 key=f"event_dropdown_{i}",
                 label_visibility="collapsed"
             )
         
-        with event_cols[3]:
-            # Override checkbox
+        with event_row[3]:
+            # Include in Override ALL?
             event["include_in_override"] = st.checkbox(
                 "Include in Override", 
-                value=event["include_in_override"], 
+                value=event.get("include_in_override", False), 
                 key=f"event_override_{i}",
                 label_visibility="collapsed"
             )
         
-        with event_cols[4]:
-            # Charged or excused selection for non-accept
+        with event_row[4]:
+            # If override occurs...
+            charged_options = ["", "Charged", "Excused"]
+            current_value = event.get("charged_or_excused", "")
+            current_index = 0
+            if current_value in charged_options:
+                current_index = charged_options.index(current_value)
+                
             event["charged_or_excused"] = st.selectbox(
-                "If override occurs...", 
-                ["", "Charged", "Excused"], 
-                index=0 if not event.get("charged_or_excused") else 
-                      (1 if event["charged_or_excused"] == "Charged" else 2),
+                "If override occurs", 
+                charged_options, 
+                index=current_index,
                 key=f"event_charge1_{i}",
                 label_visibility="collapsed"
             )
         
-        with event_cols[5]:
-            # Charged or excused selection for skipped
+        with event_row[5]:
+            # If employee is skipped...
+            skipped_options = ["", "Charged", "Excused"]
+            current_value = event.get("employee_on_exception", "")
+            current_index = 0
+            if current_value in skipped_options:
+                current_index = skipped_options.index(current_value)
+                
             event["employee_on_exception"] = st.selectbox(
-                "If employee is skipped...", 
-                ["", "Charged", "Excused"], 
-                index=0 if not event.get("employee_on_exception") else 
-                      (1 if event["employee_on_exception"] == "Charged" else 2),
+                "If employee is skipped", 
+                skipped_options, 
+                index=current_index,
                 key=f"event_charge2_{i}",
                 label_visibility="collapsed"
             )
         
-        with event_cols[6]:
-            # Can place on inbound selection
+        with event_row[6]:
+            # Can place on inbound
+            inbound_options = ["", "Yes", "No"]
+            current_value = event.get("available_on_inbound", "")
+            current_index = 0
+            if current_value in inbound_options:
+                current_index = inbound_options.index(current_value)
+                
             event["available_on_inbound"] = st.selectbox(
-                "Can place on Inbound?", 
-                ["", "Yes", "No"], 
-                index=0 if not event.get("available_on_inbound") else 
-                      (1 if event["available_on_inbound"] == "Yes" else 2),
+                "Can employee place on Inbound", 
+                inbound_options, 
+                index=current_index,
                 key=f"event_inbound_{i}",
                 label_visibility="collapsed"
             )
         
-        with event_cols[7]:
+        with event_row[7]:
             # Release via mobile
             event["release_mobile"] = st.checkbox(
                 "Release via Mobile", 
@@ -216,7 +281,7 @@ def render_event_types_form():
                 label_visibility="collapsed"
             )
         
-        with event_cols[8]:
+        with event_row[8]:
             # Auto rest status
             event["release_auto"] = st.checkbox(
                 "Auto Rest", 
@@ -225,7 +290,7 @@ def render_event_types_form():
                 label_visibility="collapsed"
             )
         
-        with event_cols[9]:
+        with event_row[9]:
             # Make unavailable
             event["make_unavailable"] = st.checkbox(
                 "Make Unavailable", 
@@ -234,16 +299,16 @@ def render_event_types_form():
                 label_visibility="collapsed"
             )
         
-        with event_cols[10]:
+        with event_row[10]:
             # Place on status
             event["place_status"] = st.checkbox(
-                "Place Status", 
+                "Place on Rest Status", 
                 value=event.get("place_status", False), 
                 key=f"event_status_{i}",
                 label_visibility="collapsed"
             )
         
-        with event_cols[11]:
+        with event_row[11]:
             # Min duration
             event["min_duration"] = st.text_input(
                 "Min Duration", 
@@ -252,7 +317,7 @@ def render_event_types_form():
                 label_visibility="collapsed"
             )
         
-        with event_cols[12]:
+        with event_row[12]:
             # Max duration
             event["max_duration"] = st.text_input(
                 "Max Duration", 
@@ -261,17 +326,17 @@ def render_event_types_form():
                 label_visibility="collapsed"
             )
         
-        # Add remove button for this event type in a separate row
-        remove_cols = st.columns([12, 1])
-        with remove_cols[1]:
-            if st.button("🗑️", key=f"remove_event_{i}", help="Remove this event type"):
+        # Add delete button in a separate row to avoid cluttering the form
+        trash_cols = st.columns([12, 1])
+        with trash_cols[1]:
+            if st.button("🗑️", key=f"remove_event_{i}"):
                 st.session_state.event_types.pop(i)
                 st.rerun()
         
         # Add a horizontal line between rows for better readability
-        st.markdown("<hr style='margin: 5px 0; border: none; border-top: 1px solid #ddd;'>", unsafe_allow_html=True)
+        st.markdown("<hr style='margin: 2px 0; border: none; border-top: 1px solid #ddd;'>", unsafe_allow_html=True)
     
-    # Export buttons at the bottom
+    # Export buttons at the bottom - match screenshot styling
     export_cols = st.columns(2)
     with export_cols[0]:
         st.button("Export as CSV", key="export_csv")
@@ -288,7 +353,7 @@ def render_event_types_form():
             ["Event Types", "Schedule Exceptions", "Override Configuration", "Mobile Configuration"]
         )
         
-        if st.button("Get Help"):
+        if st.button("Get Help", key="get_help"):
             help_query = f"Explain in detail what I need to know about {help_topic} when configuring ARCOS. Include examples and best practices."
             with st.spinner("Loading help..."):
                 help_response = get_openai_response(help_query)
