@@ -15,10 +15,16 @@ def get_csv_data(df: pd.DataFrame) -> str:
 
 def get_excel_data(df: pd.DataFrame) -> bytes:
     """Return the Excel data (as bytes) for a given DataFrame."""
-    excel_buffer = io.BytesIO()
-    df.to_excel(excel_buffer, index=False, engine='xlsxwriter')
-    excel_buffer.seek(0)
-    return excel_buffer.read()
+    try:
+        # Check if xlsxwriter is available
+        import xlsxwriter
+        excel_buffer = io.BytesIO()
+        df.to_excel(excel_buffer, index=False, engine='xlsxwriter')
+        excel_buffer.seek(0)
+        return excel_buffer.read()
+    except ImportError:
+        st.error("❌ Missing dependency: xlsxwriter is required for Excel export")
+        return b""
 
 def export_location_hierarchy_to_csv():
     """Export location hierarchy data to CSV"""
@@ -259,9 +265,18 @@ def export_all_data_to_csv():
 
 def export_all_data_to_excel():
     """Export all configuration data to a single Excel file with multiple sheets"""
+    try:
+        # Check if required dependencies are available
+        import xlsxwriter
+    except ImportError:
+        st.error("❌ **Missing Dependency**: Excel export requires `xlsxwriter`")
+        st.info("📋 **Solution**: `pip install xlsxwriter` or use JSON export instead")
+        return b""
+    
     output = io.BytesIO()
     
-    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+    try:
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
         # Export location hierarchy
         if 'hierarchy_data' in st.session_state and st.session_state.hierarchy_data["entries"]:
             locations_df = pd.DataFrame(st.session_state.hierarchy_data["entries"])
@@ -399,5 +414,9 @@ def export_all_data_to_excel():
             responses_df = pd.DataFrame(responses_data)
             responses_df.to_excel(writer, sheet_name='Other Responses', index=False)
     
-    output.seek(0)
-    return output.getvalue()
+        output.seek(0)
+        return output.getvalue()
+    
+    except Exception as e:
+        st.error(f"Error creating Excel file: {str(e)}")
+        return b""

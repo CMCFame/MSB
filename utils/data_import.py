@@ -11,8 +11,18 @@ from datetime import datetime
 def parse_excel_import(uploaded_file) -> Dict[str, Any]:
     """Parse uploaded Excel file and return session state data"""
     try:
+        # Check if openpyxl is available
+        try:
+            import openpyxl
+        except ImportError:
+            st.error("❌ **Missing Dependency**: The `openpyxl` library is required to read Excel files.")
+            st.info("📋 **Solutions:**")
+            st.code("pip install openpyxl", language="bash")
+            st.markdown("**Alternative:** Export as JSON format instead of Excel for now.")
+            return {}
+        
         # Read all sheets from the Excel file
-        excel_data = pd.read_excel(uploaded_file, sheet_name=None)
+        excel_data = pd.read_excel(uploaded_file, sheet_name=None, engine='openpyxl')
         
         session_data = {}
         
@@ -286,6 +296,22 @@ def render_import_export_section():
     """Render the import/export section in the main app"""
     st.markdown("### 📁 Data Import/Export")
     
+    # Check available dependencies
+    try:
+        import openpyxl
+        excel_available = True
+    except ImportError:
+        excel_available = False
+    
+    # Show dependency status
+    if not excel_available:
+        st.warning("⚠️ **Excel Import Unavailable**: Missing `openpyxl` dependency. JSON import/export is still available.")
+        with st.expander("🔧 Fix Excel Import"):
+            st.markdown("**To enable Excel import, install the missing dependency:**")
+            st.code("pip install openpyxl", language="bash")
+            st.markdown("**Or add to your requirements.txt:**")
+            st.code("openpyxl>=3.0.0", language="text")
+    
     # Create two columns for import and export
     import_col, export_col = st.columns(2)
     
@@ -293,14 +319,28 @@ def render_import_export_section():
         st.markdown("#### 📤 Import Data")
         st.info("Upload a previously exported file to resume your work")
         
+        # Adjust file types based on available dependencies
+        allowed_types = ['json']
+        help_text = "Upload a JSON file exported from this application"
+        
+        if excel_available:
+            allowed_types.append('xlsx')
+            help_text = "Upload an Excel file or JSON file exported from this application"
+        
         uploaded_file = st.file_uploader(
             "Choose a file to import",
-            type=['xlsx', 'json'],
-            help="Upload an Excel file or JSON file exported from this application"
+            type=allowed_types,
+            help=help_text
         )
         
         if uploaded_file is not None:
             st.write(f"📄 Selected file: {uploaded_file.name}")
+            
+            # Show warning if trying to upload Excel without openpyxl
+            if uploaded_file.name.endswith('.xlsx') and not excel_available:
+                st.error("❌ Cannot process Excel files. Please use JSON format or install `openpyxl`.")
+                return
+            
             if st.button("🔄 Load Data", type="primary"):
                 with st.spinner("Loading data..."):
                     if uploaded_file.name.endswith('.xlsx'):
@@ -323,20 +363,25 @@ def render_import_export_section():
         col1, col2 = st.columns(2)
         
         with col1:
-            if st.button("📊 Export Excel", type="secondary"):
-                from utils.exports import export_all_data_to_excel
-                excel_data = export_all_data_to_excel()
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                st.download_button(
-                    label="⬇️ Download Excel",
-                    data=excel_data,
-                    file_name=f"arcos_sig_backup_{timestamp}.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    key=f"export_excel_backup_{timestamp}"
-                )
+            # Show Excel export status
+            excel_btn_disabled = not excel_available
+            excel_btn_help = "Excel export requires openpyxl" if not excel_available else "Export all data to Excel with multiple sheets"
+            
+            if st.button("📊 Export Excel", type="secondary", disabled=excel_btn_disabled, help=excel_btn_help):
+                if excel_available:
+                    from utils.exports import export_all_data_to_excel
+                    excel_data = export_all_data_to_excel()
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    st.download_button(
+                        label="⬇️ Download Excel",
+                        data=excel_data,
+                        file_name=f"arcos_sig_backup_{timestamp}.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        key=f"export_excel_backup_{timestamp}"
+                    )
         
         with col2:
-            if st.button("📄 Export JSON", type="secondary"):
+            if st.button("📄 Export JSON", type="secondary", help="Export all data to JSON format (recommended)"):
                 json_data = export_session_to_json()
                 if json_data:
                     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -347,3 +392,7 @@ def render_import_export_section():
                         mime="application/json",
                         key=f"export_json_backup_{timestamp}"
                     )
+        
+        # Recommend JSON format if Excel is unavailable
+        if not excel_available:
+            st.info("💡 **Tip**: Use JSON format for reliable import/export without additional dependencies.")
