@@ -1,73 +1,81 @@
 # ============================================================================
-# FOOTER COMPONENT WITH EXPORT BUTTONS
+# FOOTER COMPONENT WITH EXPORT BUTTONS - FIXED
 # ============================================================================
 import streamlit as st
 from datetime import datetime
 from utils.exports import (
     export_location_hierarchy_to_csv,
     export_location_hierarchy_to_excel,
-    export_all_data_to_excel
+    export_all_data_to_excel,
+    export_all_data_to_csv
 )
-from utils.ui_helpers import create_export_button_script
 
 def render_footer(unique_id):
-    """Render the footer with export buttons"""
-    # Export buttons at the bottom of the page
-    # We use st.markdown to create a fixed position footer for the export buttons
-    st.markdown("""
-    <div class="footer-container">
-        <div class="export-container">
-            <button id="btn-csv" class="small-export-btn">Export as CSV</button>
-            <button id="btn-excel" class="small-export-btn">Export as Excel</button>
-        </div>
-    </div>
-    """ + create_export_button_script(), unsafe_allow_html=True)
+    """Render the footer with working export buttons"""
     
-    # Hidden buttons that will be triggered by the custom buttons
+    # Create a container for the floating buttons
+    st.markdown("""
+    <style>
+    .floating-footer {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        background: white;
+        padding: 10px 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        border: 1px solid #ddd;
+    }
+    .export-btn {
+        background-color: #e3051b;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        margin: 0 5px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    .export-btn:hover {
+        background-color: #b30000;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # Create the actual working buttons using Streamlit's session state
     button_container = st.container()
     with button_container:
-        # Set visibility to hidden
-        st.markdown("""
-        <style>
-        #button-container {
-            visibility: hidden;
-            position: absolute;
-        }
-        </style>
-        """, unsafe_allow_html=True)
+        # Position the container at the bottom
+        st.markdown('<div class="floating-footer">', unsafe_allow_html=True)
         
-        col1, col2 = st.columns(2)
-        with col1:
-            # CSV export
-            if st.button("Export CSV", key=f"export_csv_{unique_id}", type="secondary", use_container_width=True, 
-                        help="export_csv"):
-                # Determine what to export based on current tab
-                csv_data = ""
-                if st.session_state.current_tab == "Location Hierarchy":
-                    csv_data = export_location_hierarchy_to_csv()
-                else:
-                    # Default to location hierarchy export if tab isn't recognized
-                    csv_data = export_location_hierarchy_to_csv()
-                
+        export_cols = st.columns(2)
+        
+        with export_cols[0]:
+            if st.button("📄 Export as CSV", key=f"floating_csv_{unique_id}", type="secondary"):
+                csv_data = export_all_data_to_csv()
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 st.download_button(
-                    label="Download CSV",
+                    label="⬇️ Download CSV",
                     data=csv_data,
-                    file_name=f"arcos_sig_{timestamp}.csv",
+                    file_name=f"arcos_sig_complete_{timestamp}.csv",
                     mime="text/csv",
-                    key=f"download_csv_{timestamp}"
+                    key=f"download_csv_floating_{timestamp}"
                 )
+                st.success("CSV export ready for download!")
         
-        with col2:
-            # Excel export
-            if st.button("Export Excel", key=f"export_excel_{unique_id}", type="secondary", use_container_width=True,
-                        help="export_excel"):
+        with export_cols[1]:
+            if st.button("📊 Export as Excel", key=f"floating_excel_{unique_id}", type="secondary"):
                 excel_data = export_all_data_to_excel()
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 st.download_button(
-                    label="Download Excel",
+                    label="⬇️ Download Excel",
                     data=excel_data,
-                    file_name=f"arcos_sig_{timestamp}.xlsx",
+                    file_name=f"arcos_sig_complete_{timestamp}.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    key=f"download_excel_{timestamp}"
+                    key=f"download_excel_floating_{timestamp}"
                 )
+                st.success("Excel export ready for download!")
+        
+        st.markdown('</div>', unsafe_allow_html=True)

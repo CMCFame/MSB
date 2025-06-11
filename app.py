@@ -1,4 +1,4 @@
-# app.py - test
+# app.py - Updated with Import/Export functionality
 
 import streamlit as st
 from config.constants import ARCOS_RED, PAGE_TITLE, PAGE_LAYOUT, SIDEBAR_STATE
@@ -19,6 +19,13 @@ from tabs.data_interfaces import render_data_interfaces
 from tabs.additions import render_additions
 from datetime import datetime
 import uuid
+
+# Import the new data import module
+try:
+    from utils.data_import import render_import_export_section
+    IMPORT_EXPORT_AVAILABLE = True
+except ImportError:
+    IMPORT_EXPORT_AVAILABLE = False
 
 st.set_page_config(
     page_title=PAGE_TITLE,
@@ -41,6 +48,12 @@ def main():
     main_content = st.container()
     with main_content:
         render_header()
+        
+        # Add Import/Export section at the top
+        if IMPORT_EXPORT_AVAILABLE:
+            with st.expander("📁 Import/Export Data", expanded=False):
+                render_import_export_section()
+            st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
 
         tabs = [
             "Location Hierarchy", "Trouble Locations", "Job Classifications",
@@ -57,10 +70,32 @@ def main():
         }
 
         # Calculate completion progress
-        completed_tabs = sum(1 for tab in tabs if any(k.startswith(tab.replace(" ", "_").lower()) for k in st.session_state.get("responses", {})))
-        progress = completed_tabs / len(tabs)
+        completed_tabs = 0
+        total_tabs = len(tabs)
+        
+        # Check each tab for completion
+        if 'hierarchy_data' in st.session_state and st.session_state.hierarchy_data.get("entries"):
+            completed_tabs += 1
+        if 'trouble_locations' in st.session_state and any(loc.get("location") for loc in st.session_state.trouble_locations):
+            completed_tabs += 1
+        if 'job_classifications' in st.session_state and any(job.get("title") for job in st.session_state.job_classifications):
+            completed_tabs += 1
+        if 'selected_callout_reasons' in st.session_state and st.session_state.selected_callout_reasons:
+            completed_tabs += 1
+        if 'event_types' in st.session_state and any(event.get("use") for event in st.session_state.event_types):
+            completed_tabs += 1
+        if 'responses' in st.session_state and any(k.startswith("matrix_") for k in st.session_state.responses):
+            completed_tabs += 1
+        if 'global_config_answers' in st.session_state and st.session_state.global_config_answers:
+            completed_tabs += 1
+        if 'data_interfaces' in st.session_state and any(v for v in st.session_state.data_interfaces.values() if v):
+            completed_tabs += 1
+        if 'additions' in st.session_state and any(v for v in st.session_state.additions.values() if v):
+            completed_tabs += 1
+        
+        progress = completed_tabs / total_tabs
         st.progress(progress)
-        st.write(f"{int(progress * 100)}% complete")
+        st.write(f"📊 Progress: {completed_tabs}/{total_tabs} sections completed ({int(progress * 100)}%)")
 
         render_icon_tabs(tabs, tab_icons)
 
@@ -87,13 +122,19 @@ def main():
                 render_data_interfaces()
             elif current_tab == "Additions":
                 render_additions()
+                
         except Exception as e:
             st.error(f"Error rendering tab: {str(e)}")
             import traceback
             print(traceback.format_exc())
+            # Show basic error recovery options
+            st.markdown("### 🔧 Error Recovery")
+            st.info("If you're experiencing issues, try refreshing the page or importing a backup file.")
 
+        # Add some space for the floating footer
         st.markdown("<div style='height: 80px;'></div>", unsafe_allow_html=True)
 
+    # Render the fixed footer with working export buttons
     render_footer(unique_id)
 
 if __name__ == "__main__":
