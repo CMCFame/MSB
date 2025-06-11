@@ -1,4 +1,4 @@
-# app.py
+# app.py - test
 
 import streamlit as st
 from config.constants import ARCOS_RED, PAGE_TITLE, PAGE_LAYOUT, SIDEBAR_STATE
