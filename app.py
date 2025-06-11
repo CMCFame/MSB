@@ -74,11 +74,11 @@ def main():
         total_tabs = len(tabs)
         
         # Check each tab for completion
-        if 'hierarchy_data' in st.session_state and st.session_state.hierarchy_data.get("entries"):
+        if 'hierarchy_data' in st.session_state and st.session_state.hierarchy_data.get("entries") and any(entry.get("level1") for entry in st.session_state.hierarchy_data["entries"]):
             completed_tabs += 1
-        if 'trouble_locations' in st.session_state and any(loc.get("location") for loc in st.session_state.trouble_locations):
+        if 'trouble_locations' in st.session_state and any(loc.get("location") for loc in st.session_state.trouble_locations if loc.get("location")):
             completed_tabs += 1
-        if 'job_classifications' in st.session_state and any(job.get("title") for job in st.session_state.job_classifications):
+        if 'job_classifications' in st.session_state and any(job.get("title") for job in st.session_state.job_classifications if job.get("title")):
             completed_tabs += 1
         if 'selected_callout_reasons' in st.session_state and st.session_state.selected_callout_reasons:
             completed_tabs += 1
@@ -86,12 +86,31 @@ def main():
             completed_tabs += 1
         if 'responses' in st.session_state and any(k.startswith("matrix_") for k in st.session_state.responses):
             completed_tabs += 1
-        if 'global_config_answers' in st.session_state and st.session_state.global_config_answers:
+        # Fixed: Better check for global configuration
+        if 'global_config_answers' in st.session_state and any(v for v in st.session_state.global_config_answers.values() if v not in (None, '', False, 0)):
             completed_tabs += 1
-        if 'data_interfaces' in st.session_state and any(v for v in st.session_state.data_interfaces.values() if v):
-            completed_tabs += 1
-        if 'additions' in st.session_state and any(v for v in st.session_state.additions.values() if v):
-            completed_tabs += 1
+        # Fixed: Better check for data interfaces
+        if 'data_interfaces' in st.session_state:
+            # Check if any top-level values are filled
+            has_data = any(
+                v for v in [
+                    st.session_state.data_interfaces.get('employee_data', ''),
+                    st.session_state.data_interfaces.get('pii_consideration', ''),
+                    st.session_state.data_interfaces.get('hri_oti_review', '')
+                ] if v
+            )
+            # Also check nested dictionaries
+            if not has_data and 'hr_interface' in st.session_state.data_interfaces:
+                has_data = any(v for v in st.session_state.data_interfaces['hr_interface'].values() if v)
+            if not has_data and 'overtime_interface' in st.session_state.data_interfaces:
+                has_data = any(v for v in st.session_state.data_interfaces['overtime_interface'].values() if v)
+            if has_data:
+                completed_tabs += 1
+        # Fixed: Better check for additions
+        if 'additions' in st.session_state:
+            has_additions = any(v for v in st.session_state.additions.values() if v not in (None, '', False, 0, [], {}))
+            if has_additions:
+                completed_tabs += 1
         
         progress = completed_tabs / total_tabs
         st.progress(progress)
